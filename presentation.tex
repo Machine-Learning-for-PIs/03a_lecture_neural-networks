@@ -55,9 +55,12 @@
 \usetheme{metropolis}           % Use metropolis theme
 \setbeamertemplate{caption}[default]
 \title{Introduction to Neural Networks}
-\date{\today}
-\institute{High-Performance Computing and Analytics Lab}
-\author{Moritz Wolter}
+\date{February 17, 2025}%{\today}
+%\institute{High-Performance Computing and Analytics Lab}
+%\author{Moritz Wolter}
+\institute{Visual Computing Group, University of Bonn}
+\author{Elena Trunz}
+
 
 \titlegraphic{\includegraphics[width=2.00cm]{UNI_Bonn_Logo_Standard_RZ.pdf}}
 
@@ -115,14 +118,14 @@
     \end{frame}
 
     \begin{frame}{The activation function $f$}
-      Two popular choices for the activation function $f$.
+		 Activation functions should be differentiable and non-linear. Two popular choices for the activation function $f$ are
       \begin{figure}
         \includestandalone[width=0.49\linewidth]{./figures/sigmoid}
         \includestandalone[width=0.49\linewidth]{./figures/ReLU}
       \end{figure}
     \end{frame}
 
-    \begin{frame}{Arrays of perceptrons}
+    \begin{frame}{Fully connected layer}
       Let's extend the definition to cover an array of perceptrons:
       \begin{figure}
         \includestandalone[scale=0.5]{./figures/perceptron_array}
@@ -133,22 +136,45 @@
       \end{align}
       With $\mathbf{W} \in \mathbb{R}^{m,n}$, $\mathbf{x} \in \mathbb{R}^{n}$, $\mathbf{b} \in \mathbb{R}^{m}$, and $\mathbf{h}, \bar{\mathbf{h}} \in \mathbb{R}^m$.
     \end{frame}
+		
+		\begin{frame}{Multi-layer networks}
+      Stack dense (fully connected) layers and activations to create deeper networks. \\
+      \begin{figure}
+        \includestandalone[width=\linewidth]{./figures/multilayer1} 
+      \end{figure}
+			The activation function used right before the output is typically chosen based on the nature of the task and often differs from those used in the hidden layers.
+    \end{frame}
+		
+		\begin{frame}{Output activations}
+      \begin{itemize}
+				\item Regression: The activation function is simply an identity function, i.e. $h = \bar{h}$.
+				\item Classification: 
+				\begin{itemize}
+					\item Logistic sigmoid function for binary classification: 
+						\[\sigma_{\text{binary}}(\bar{h}) = \frac{1}{1+\exp(-\bar{h})}\]
+					\item  Soft-max activation for multiple classes: 
+					\[ \sigma_{\text{multi-class}}(\bar{h}) = \frac{\exp(\bar{h}_c)}{\sum_b\exp(\bar{h}_b)}\]
+				\end{itemize}
+			\end{itemize}
+    \end{frame}
+		
+		\section{Training neural networks}
 
     \begin{frame}{The loss function}
       To choose weights for the network, we require a quality measure. \\
-      We already saw the squared error cost function,
+      We already saw the mean squared error cost function,
       \begin{align}
-        C_{\text{se}} = \frac{1}{2} \sum_{k=1}^{n} (\mathbf{h}_k - \mathbf{y}_k)^2 = \frac{1}{2} (\mathbf{h} - \mathbf{y})^T(\mathbf{h} - \mathbf{y})
+        C_{\text{mse}} = \frac{1}{2} \sum_{k=1}^{n} (\mathbf{h}_k - \mathbf{y}_k)^2 = \frac{1}{2} (\mathbf{h} - \mathbf{y})^T(\mathbf{h} - \mathbf{y})
       \end{align}
       This function measures the squared distance from each desired output.
       $\mathbf{y}$ denotes the desired labels, and $\mathbf{h}$ represents network output.
     \end{frame}
 
 
-    \begin{frame}{The gradient of the se-cost-function}
-      Both the squared error loss function and our dense layer are differentiable. 
+    \begin{frame}{The gradient of the mse-cost-function}
+      Both the mean squared error loss function and our dense layer are differentiable. 
       \begin{align}
-        \frac{\partial C_{\text{se}}}{\partial \mathbf{h}} = \mathbf{h} - \mathbf{y} = \triangle_{\text{se}}
+        \frac{\partial C_{\text{mse}}}{\partial \mathbf{h}} = \mathbf{h} - \mathbf{y} = \triangle_{\text{mse}}
       \end{align}
       The $\triangle$ symbol will re-appear. It always indicates incoming gradient information from above.
       If the labels are a vector of shape $\mathbb{R}^m$, $\triangle$ and the network output $\mathbf{h}$ must share 
