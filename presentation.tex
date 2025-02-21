@@ -161,57 +161,163 @@
 		\section{Training neural networks}
 
     \begin{frame}{The loss function}
-      To choose weights for the network, we require a quality measure. \\
-      We already saw the mean squared error cost function,
+		\begin{itemize}
+      \item To choose weights for the network, we require a quality measure.
+      \item We already saw the mean squared error cost function:
       \begin{align}
         C_{\text{mse}} = \frac{1}{2} \sum_{k=1}^{n} (\mathbf{h}_k - \mathbf{y}_k)^2 = \frac{1}{2} (\mathbf{h} - \mathbf{y})^T(\mathbf{h} - \mathbf{y})
       \end{align}
-      This function measures the squared distance from each desired output.
+      \item This function measures the squared distance from each desired output.
       $\mathbf{y}$ denotes the desired labels, and $\mathbf{h}$ represents network output.
+			\item We want to find the parameters $\mathbf{W}$ and $\mathbf{b}$ that minimize our loss. 
+			\end{itemize}
     \end{frame}
+		
+		\begin{frame}{Optimization}
+      \begin{itemize}
+      \item We use gradient descent to minimize our loss function.
+			\item That means we need to compute the gradients of the loss function with respect to each weight in the network. 
+			\item These gradients will tell us how much each weight should change to reduce the overall error.
+			\item How can we compute the gradients efficiently?
+			\begin{itemize}
+				\item[$\rightarrow$] We use \emph{backpropagation}
+			\end{itemize}
+			\end{itemize}
+    \end{frame}
+		
+		\begin{frame}{Gradient descent with backpropagation}
+    \begin{enumerate}
+        \item Perform a forward pass through the network.
+        \item Compute the gradient of the loss with respect to the output layer.
+        \item Backpropagate the error through the network.
+        \item Update the weights using the gradients.
+				\item Repeat steps 1) - 4) until convergence.
+    \end{enumerate}
+		\note<1>{ 1) Compute the output of the network by passing the input through each layer to the final output layer.
+		2) Using the derivative of the loss function, we measure how much the output layer contributed to the error (Calculate how much the loss changes with respect to the output of the network, which tells us how far the prediction is from the true value.) 
+		3) Propagate the gradients backward through each layer, using the chain rule, to determine how each weight contributed to the error.
+		4) Adjust the weights by a small amount in the opposite direction of the gradients to minimize the loss and improve the model (gradient descent)
+		}
+\end{frame}
 
+\begin{frame}{Step 1: Forward pass}
+   \begin{figure}
+        \includestandalone[width=\linewidth]{./figures/multilayer1} 
+      \end{figure}
+	\end{frame}
 
-    \begin{frame}{The gradient of the mse-cost-function}
-      Both the mean squared error loss function and our dense layer are differentiable. 
-      \begin{align}
+\begin{frame}{Step 2: Gradient for output}
+The gradient of the mse-cost-function: Both the mean squared error loss function and our dense layer are differentiable. 
+\begin{align}
         \frac{\partial C_{\text{mse}}}{\partial \mathbf{h}} = \mathbf{h} - \mathbf{y} = \triangle_{\text{mse}}
       \end{align}
-      The $\triangle$ symbol will re-appear. It always indicates incoming gradient information from above.
+      The $\triangle$ symbol~\cite{nielsen2015neural} will re-appear. It always indicates incoming gradient information from above.
       If the labels are a vector of shape $\mathbb{R}^m$, $\triangle$ and the network output $\mathbf{h}$ must share 
       this dimension.
-    \end{frame}
+\note<1>{ Gradient of the loss function with respect to the output layer
+		}
+	\end{frame}
+	
+    %\begin{frame}{The gradient of the mse-cost-function}
+      %Both the mean squared error loss function and our dense layer are differentiable. 
+      %\begin{align}
+        %\frac{\partial C_{\text{mse}}}{\partial \mathbf{h}} = \mathbf{h} - \mathbf{y} = \triangle_{\text{mse}}
+      %\end{align}
+      %The $\triangle$ symbol will re-appear. It always indicates incoming gradient information from above.
+      %If the labels are a vector of shape $\mathbb{R}^m$, $\triangle$ and the network output $\mathbf{h}$ must share 
+      %this dimension.
+    %\end{frame}
+		
+		\begin{frame}{Step 3: Backpropagate the gradient}
+		Recall the chain rule $(g(h(x)))' = g'(h(x)) \cdot h'(x)$.
 
-    \begin{frame}{The gradient of a dense layer}
-      The chain rule tells us the gradients for the dense layer~\cite{nielsen2015neural}
+		We use chain rule to backpropagate the gradient trough the activation function and the dense layer and repeat this for all layers down to the input.
+	\end{frame}
+	
+	\begin{frame}{Step 3: Backpropagate the gradient: Activation}
+		From the forward pass we have: $\mathbf{h} = f(\bar{\mathbf{h}})$. \\
+		From backpropagation, we get an incoming gradient (error term) from the next layer:  
+		\begin{align*}
+        \frac{\partial C}{\partial \mathbf{h}} = \triangle
+      \end{align*}
+			We backpropagate it through the activation function:
+			\begin{align*}
+        \frac{\partial C}{\partial \bar{\mathbf{h}}} = \frac{\partial C}{\partial \mathbf{h}} \cdot \frac{\partial \mathbf{h}}{\partial \bar{\mathbf{h}}} = \triangle \odot f'(\bar{\mathbf{h}}),
+      \end{align*}
+			where $\odot$ is the element-wise product.
+			\note{f'(\bar{\mathbf{h}} is the derivative of the activation function, which is why we need our activation function to be differentiable.}
+	\end{frame}
+	
+	\begin{frame}{Step 3: Backpropagate the gradient: Dense layer}
+		\begin{align*}
+        \frac{\partial C}{\partial \mathbf{W}} = \frac{\partial C}{\partial \bar{\mathbf{h}}} \cdot \frac{\partial \bar{\mathbf{h}}}{\partial \mathbf{W}}, \quad \quad \frac{\partial C}{\partial \mathbf{b}} = \frac{\partial C}{\partial \bar{\mathbf{h}}} \cdot \frac{\partial \bar{\mathbf{h}}}{\partial \mathbf{b}}, \quad \quad \frac{\partial C}{\partial \mathbf{x}} = \frac{\partial C}{\partial \bar{\mathbf{h}}} \cdot \frac{\partial \bar{\mathbf{h}}}{\partial \mathbf{x}}
+      \end{align*}
+		From the forward pass we know: $\bar{\mathbf{h}} = \mathbf{W}\mathbf{x}+\mathbf{b}$. Thus:
+		\begin{align*}
+        \frac{\partial \bar{\mathbf{h}}}{\partial \mathbf{W}} =\mathbf{x}^T, \quad \quad \frac{\partial \bar{\mathbf{h}}}{\partial \mathbf{b}} =1, \quad \quad \frac{\partial \bar{\mathbf{h}}}{\partial \mathbf{x}} =\mathbf{W}
+      \end{align*}
+		Substituting:
+		\begin{align*}
+        \frac{\partial C}{\partial \mathbf{W}} = (\triangle \odot f'(\bar{\mathbf{h}}))\mathbf{x}^T, \quad \frac{\partial C}{\partial \mathbf{b}} = \triangle \odot f'(\bar{\mathbf{h}}), \quad \frac{\partial C}{\partial \mathbf{x}} = \mathbf{W}^T(\triangle \odot f'(\bar{\mathbf{h}}))
+      \end{align*}
+	\end{frame}
+
+    %\begin{frame}{The gradient of a dense layer}
+      %The chain rule tells us the gradients for the dense layer~\cite{nielsen2015neural}
+      %\begin{align}
+        %\delta \mathbf{W} &= [f'(\bar{\mathbf{h}}) \odot \triangle]\mathbf{x}^T, &  \delta \mathbf{b} = f'(\bar{\mathbf{h}}) \odot \triangle, \\
+        %\delta \mathbf{x} &= \mathbf{W}^T [f'(\bar{\mathbf{h}}) \odot \triangle],
+      %\end{align}
+      %where $\odot$ is the element-wise product. $\delta$ denotes the cost function gradient for the value following it \cite{greff2016lstm}. \\
+      %With $\delta \mathbf{W} \in \mathbb{R}^{m,n}$, $\delta \mathbf{x} \in \mathbb{R}^{n}$ and $\delta \mathbf{b} \in \mathbb{R}^{m}$.
+      %\textbf{Modern libraries will take care of these computations for you!} \\
+      %
+      %\note<1>{
+        %On the board, derive:
+        %Recall the chain rule $(g(h(x)))' = g'(h(x)) \cdot h'(x)$.
+        %For the activation function, we have,
+        %\begin{align}
+          %\mathbf{h} &= f(\bar{\mathbf{h}}) \\
+          %\Rightarrow \delta \bar{\mathbf{h}} &= f'(\bar{\mathbf{h}}) \odot \triangle
+        %\end{align}
+        %For the weight matrix,
+        %\begin{align}
+          %\bar{\mathbf{h}} &= \mathbf{W}\mathbf{x} + \mathbf{b} \\
+          %\Rightarrow \delta \mathbf{W} &= \delta \bar{\mathbf{h}} \mathbf{x}^T = [f'(\bar{\mathbf{h}}) \odot \triangle] \mathbf{x}^T
+        %\end{align}
+        %For the bias,
+        %\begin{align}
+          %\bar{\mathbf{h}}  &= \mathbf{W}\mathbf{x} + \mathbf{b} \\
+          %\Rightarrow \delta \mathbf{b} &= 1 \odot \delta \bar{\mathbf{h}} = [f'(\bar{\mathbf{h}}) \odot \triangle]
+        %\end{align}
+      %}
+    %\end{frame}
+		
+		\begin{frame}{The gradient of a dense layer}
+      Let $\delta$ denote the cost function gradient for the value following it \cite{greff2016lstm}. It holds:
       \begin{align}
         \delta \mathbf{W} &= [f'(\bar{\mathbf{h}}) \odot \triangle]\mathbf{x}^T, &  \delta \mathbf{b} = f'(\bar{\mathbf{h}}) \odot \triangle, \\
         \delta \mathbf{x} &= \mathbf{W}^T [f'(\bar{\mathbf{h}}) \odot \triangle],
       \end{align}
-      where $\odot$ is the element-wise product. $\delta$ denotes the cost function gradient for the value following it \cite{greff2016lstm}. \\
-      With $\delta \mathbf{W} \in \mathbb{R}^{m,n}$, $\delta \mathbf{x} \in \mathbb{R}^{n}$ and $\delta \mathbf{b} \in \mathbb{R}^{m}$.
+      with $\delta \mathbf{W} \in \mathbb{R}^{m,n}$, $\delta \mathbf{x} \in \mathbb{R}^{n}$ and $\delta \mathbf{b} \in \mathbb{R}^{m}$.
       \textbf{Modern libraries will take care of these computations for you!} \\
-      
-      \note<1>{
-        On the board, derive:
-        Recall the chain rule $(g(h(x)))' = g'(h(x)) \cdot h'(x)$.
-        For the activation function, we have,
-        \begin{align}
-          \mathbf{h} &= f(\bar{\mathbf{h}}) \\
-          \Rightarrow \delta \bar{\mathbf{h}} &= f'(\bar{\mathbf{h}}) \odot \triangle
-        \end{align}
-        For the weight matrix,
-        \begin{align}
-          \bar{\mathbf{h}} &= \mathbf{W}\mathbf{x} + \mathbf{b} \\
-          \Rightarrow \delta \mathbf{W} &= \delta \bar{\mathbf{h}} \mathbf{x}^T = [f'(\bar{\mathbf{h}}) \odot \triangle] \mathbf{x}^T
-        \end{align}
-        For the bias,
-        \begin{align}
-          \bar{\mathbf{h}}  &= \mathbf{W}\mathbf{x} + \mathbf{b} \\
-          \Rightarrow \delta \mathbf{b} &= 1 \odot \delta \bar{\mathbf{h}} = [f'(\bar{\mathbf{h}}) \odot \triangle]
-        \end{align}
-      }
     \end{frame}
-
+		%
+		\begin{frame}{Backpropagation}
+      \begin{figure}
+        \includegraphics[width=\linewidth]{./figures/backprop.pdf} 
+      \end{figure}
+    \end{frame}
+		
+		\begin{frame}{Step 4: Updating the weights}
+		The weights at the next time step $\tau$ are given by,
+		\begin{align*}
+			\mathbf{W}_{\tau + 1} &= \mathbf{W}_\tau - \epsilon \cdot \delta\mathbf{W}_{\tau}, \\
+			\mathbf{b}_{\tau + 1} &= \mathbf{b}_{\tau} - \epsilon \cdot \delta\mathbf{b}_{\tau},
+			 \end{align*}
+			where the step size, also called the learning rate, is given by $\epsilon \in \mathbb{R}$. At $\tau = 0$, matrix entries are random.
+    \end{frame}
+%
     \begin{frame}{Derivatives of our activation functions}
       \begin{align}
         \sigma'(x) = \sigma(x) \cdot (1 - \sigma(x)) \\
@@ -238,18 +344,19 @@
       $\mathbf{o} \in \mathbb{R}^{n}$ denotes the network output.
     \end{frame}
 
-    \begin{frame}{Denoising a cosine}
-      Training works by iteratively descending along the gradients. For $\mathbf{W}$ the weights at the
-      next time step $\tau$ are given by,
-      \begin{align}
-        \mathbf{W}_{\tau + 1} = \mathbf{W}_\tau - \epsilon \cdot \delta\mathbf{W}_{\tau}.
-      \end{align}
-      The step size is given by $\epsilon \in \mathbb{R}$. At $\tau = 0$, matrix entries are random.
-      $\mathcal{U}[-0.1, 0.1]$ is a reasonable choice here.
-      The process is the same for all other network components.
-    \end{frame}
+    %\begin{frame}{Denoising a cosine}
+      %Training works by iteratively descending along the gradients. For $\mathbf{W}$ the weights at the
+      %next time step $\tau$ are given by,
+      %\begin{align}
+        %\mathbf{W}_{\tau + 1} = \mathbf{W}_\tau - \epsilon \cdot \delta\mathbf{W}_{\tau}.
+      %\end{align}
+      %The step size is given by $\epsilon \in \mathbb{R}$. At $\tau = 0$, matrix entries are random.
+      %$\mathcal{U}[-0.1, 0.1]$ is a reasonable choice here.
+      %The process is the same for all other network components.
+    %\end{frame}
 
     \begin{frame}{Denoising a cosine}
+			Here, the random initialization of the weights from $\mathcal{U}[-0.1, 0.1]$ is a reasonable choice.\\
       Optimization for 500 steps with 10 neurons, leads to the output below:
       \begin{figure}
         \includestandalone[width=.5\linewidth]{./figures/denoising}
@@ -261,20 +368,20 @@
       \begin{itemize}
         \item Artificial neural networks are biologically motivated.
         \item Gradients make it possible to optimize arrays of neurons.
-        \item A single array of layers of neurons can solve tasks like denoising a sine.
+        \item A single array of layers of neurons can solve tasks like denoising a cosine.
       \end{itemize}
     \end{frame}
 
 
     \section{Classification with neural networks}
 
-    \begin{frame}{Deep multi-layer networks}
-      Stack dense layers and activations to create deep networks. \\
-      \begin{figure}
-        \includestandalone[width=\linewidth]{./figures/multilayer} 
-      \end{figure}
-    \end{frame}
-
+    %\begin{frame}{Deep multi-layer networks}
+      %Stack dense layers and activations to create deep networks. \\
+      %\begin{figure}
+        %\includestandalone[width=\linewidth]{./figures/multilayer} 
+      %\end{figure}
+    %\end{frame}
+%
     \begin{frame}{Backpropagation}
       \begin{figure}
         \includestandalone[width=\linewidth]{./figures/backprop} 
