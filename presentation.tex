@@ -24,6 +24,7 @@
 \usepackage{multimedia}
 \usepackage{standalone}
 \usepackage{csquotes}
+\usepackage{caption}
 %\usepackage{hyperlink}
 %\usepackage{url}
 
@@ -49,13 +50,16 @@
   %natbib=true % natbib compatibility mode (\citep and \citet still work)
 }{biblatex}
 \usepackage{biblatex}
+% Redefine the caption format to remove "Figure"
+\captionsetup[figure]{labelformat=empty}
+
 
 \addbibresource{bib.bib}
 
 \usetheme{metropolis}           % Use metropolis theme
 \setbeamertemplate{caption}[default]
 \title{Introduction to Neural Networks}
-\date{February 17, 2025}%{\today}
+\date{February 24, 2025}%{\today}
 %\institute{High-Performance Computing and Analytics Lab}
 %\author{Moritz Wolter}
 \institute{Visual Computing Group, University of Bonn}
@@ -120,8 +124,10 @@
     \begin{frame}{The activation function $f$}
 		 Activation functions should be differentiable and non-linear. Two popular choices for the activation function $f$ are
       \begin{figure}
-        \includestandalone[width=0.49\linewidth]{./figures/sigmoid}
-        \includestandalone[width=0.49\linewidth]{./figures/ReLU}
+				\includegraphics[width=0.49\linewidth]{./figures/sigmoid.pdf} 
+				\includegraphics[width=0.49\linewidth]{./figures/relu.pdf} 
+        %\includestandalone[width=0.49\linewidth]{./figures/sigmoid}
+        %\includestandalone[width=0.49\linewidth]{./figures/ReLU}
       \end{figure}
     \end{frame}
 
@@ -141,13 +147,13 @@
       Stack dense (fully connected) layers and activations to create deeper networks. \\
       \begin{figure}
         \includestandalone[width=\linewidth]{./figures/multilayer1} 
-      \end{figure}
+      \end{figure}	%\pause
 			The activation function used right before the output is typically chosen based on the nature of the task and often differs from those used in the hidden layers.
     \end{frame}
 		
 		\begin{frame}{Output activations}
       \begin{itemize}
-				\item Regression: The activation function is simply an identity function, i.e. $h = \bar{h}$.
+				\item Regression: The activation function is simply an identity function, i.e. $h = \bar{h}$.	%\pause
 				\item Classification: 
 				\begin{itemize}
 					\item Logistic sigmoid function for binary classification: 
@@ -168,7 +174,7 @@
         C_{\text{mse}} = \frac{1}{2} \sum_{k=1}^{n} (\mathbf{h}_k - \mathbf{y}_k)^2 = \frac{1}{2} (\mathbf{h} - \mathbf{y})^T(\mathbf{h} - \mathbf{y})
       \end{align}
       \item This function measures the squared distance from each desired output.
-      $\mathbf{y}$ denotes the desired labels, and $\mathbf{h}$ represents network output.
+      $\mathbf{y}$ denotes the desired labels, and $\mathbf{h}$ represents network output.  %\pause
 			\item We want to find the parameters $\mathbf{W}$ and $\mathbf{b}$ that minimize our loss. 
 			\end{itemize}
     \end{frame}
@@ -177,8 +183,8 @@
       \begin{itemize}
       \item We use gradient descent to minimize our loss function.
 			\item That means we need to compute the gradients of the loss function with respect to each weight in the network. 
-			\item These gradients will tell us how much each weight should change to reduce the overall error.
-			\item How can we compute the gradients efficiently?
+			\item These gradients will tell us how much each weight should change to reduce the overall error. %\pause
+			\item How can we compute the gradients efficiently? %\pause
 			\begin{itemize}
 				\item[$\rightarrow$] We use \emph{backpropagation}
 			\end{itemize}
@@ -229,7 +235,7 @@ The gradient of the mse-cost-function: Both the mean squared error loss function
     %\end{frame}
 		
 		\begin{frame}{Step 3: Backpropagate the gradient}
-		Recall the chain rule $(g(h(x)))' = g'(h(x)) \cdot h'(x)$.
+		Recall the chain rule $(g(h(x)))' = g'(h(x)) \cdot h'(x)$. %\pause
 
 		We use chain rule to backpropagate the gradient trough the activation function and the dense layer and repeat this for all layers down to the input.
 	\end{frame}
@@ -310,7 +316,7 @@ The gradient of the mse-cost-function: Both the mean squared error loss function
     \end{frame}
 		
 		\begin{frame}{Step 4: Updating the weights}
-		The weights at the next time step $\tau$ are given by,
+		The weights at the next time step $\tau + 1$ are given by,
 		\begin{align*}
 			\mathbf{W}_{\tau + 1} &= \mathbf{W}_\tau - \epsilon \cdot \delta\mathbf{W}_{\tau}, \\
 			\mathbf{b}_{\tau + 1} &= \mathbf{b}_{\tau} - \epsilon \cdot \delta\mathbf{b}_{\tau},
@@ -324,20 +330,22 @@ The gradient of the mse-cost-function: Both the mean squared error loss function
         \text{ReLU}'(x) = H(x) 
       \end{align}
       \begin{figure}
-        \includestandalone[width=0.49\linewidth]{./figures/sigmoid_prime}
-        \includestandalone[width=0.447\linewidth]{./figures/relu_prime}
+				\includegraphics[width=0.49\linewidth]{./figures/sigmoid_prime.pdf} 
+				\includegraphics[width=0.447\linewidth]{./figures/relu_prime.pdf} 
+        %\includestandalone[width=0.49\linewidth]{./figures/sigmoid_prime}
+        %\includestandalone[width=0.447\linewidth]{./figures/relu_prime}
       \end{figure}
     \end{frame}
 
     \begin{frame}{Perceptrons for functions}
       The network components described this far already allow function learning.
-      Given a noisy input signal $x \in \mathbb{R}^{m}$ and a ground through output $\mathbf{y} \in \mathbb{R}^m$,
+      Given a noisy input signal $\mathbf{x} \in \mathbb{R}^{n}$ and a ground through output $\mathbf{y} \in \mathbb{R}^n$,
       define,
       \begin{align}
         \mathbf{h}_1 = \sigma(\mathbf{W}\mathbf{x} + \mathbf{b}) \\
         \mathbf{o} = \mathbf{W}_{\text{proj}}\mathbf{h}_1
       \end{align}
-      With $\mathbf{W} \in \mathbb{R}^{m,n}$, $\mathbf{x} \in \mathbb{R}^{n}$ and $\mathbf{b} \in \mathbb{R}^{m}$.
+      With $\mathbf{W} \in \mathbb{R}^{m,n}$ and $\mathbf{b} \in \mathbb{R}^{m}$.
       $m$ and $n$ denote the number of neurons and the input signal length.
       For signal denoising, input and output have the same length.
       Therefore $\mathbf{W}_{\text{proj}} \in \mathbb{R}^{n,m}$.
@@ -544,13 +552,13 @@ The gradient of the mse-cost-function: Both the mean squared error loss function
 \end{frame}
 
 \begin{frame}{Not all data augmentation works}
-    The effectiveness of data synthesis depends on the application.
+    The effectiveness of data synthesis depends on the application.	%\pause
     \begin{itemize}
-        \item In density estimation, generating new samples requires an already accurate model of the data distribution.
-        \item For visual recognition tasks, data augmentation is effective because many image variations can be simulated.
+        \item In density estimation, generating new samples requires an already accurate model of the data distribution. %\pause
+        \item For visual recognition tasks, data augmentation is effective because many image variations can be simulated.	%\pause
         \begin{itemize}
-            \item Translating training images by a few pixels often improves generalization.
-            \item Other common transformations include rotation and scaling.
+            \item Translating training images by a few pixels often improves generalization.	%\pause
+            \item Other common transformations include rotation and scaling.	%\pause
             \item Care must be taken to avoid transformations that alter the true class.
         \end{itemize}
     \end{itemize}
